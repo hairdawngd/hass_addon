@@ -10,6 +10,8 @@
   fixed-draw-size prior and paired block-bootstrap intervals versus uniform baseline.
 - **Vietlott Tracker 0.3.6**: correct expert-to-forecast alignment so Beta-Binomial
   remains a research benchmark outside the production Hedge; invalidate old model state.
+- **Vietlott Tracker 0.3.7**: start walk-forward scoring on draw 2, using all preceding
+  draws for each forecast instead of discarding the first 100 draws as warm-up.
 - **XSMB Tracker 0.1.6**: add daily full-history retraining, training and latest
   prediction-result details on the Ingress page, and a manual retrain button.
 - **XSMB Tracker 0.1.7**: add persisted, incremental walk-forward backtesting with

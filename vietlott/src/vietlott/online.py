@@ -11,9 +11,9 @@ from .features import N_FEATURES
 
 EPS = 1e-6
 DECAYS = (0.99, 0.995, 0.999)
-START = 100
+START = 1
 LR, L2, ETA = 0.002, 1e-2, 0.5
-MODEL_VERSION = 4
+MODEL_VERSION = 5
 
 
 def _logloss(p, y):

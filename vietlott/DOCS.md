@@ -28,11 +28,13 @@ bộ khi có kỳ mới.
 ### Backtest walk-forward
 
 Backtest lịch sử là quy trình riêng với mô hình production dùng tạo bộ số cho kỳ tới.
-Mỗi game sắp xếp kỳ quay theo thời gian tăng dần, dùng 100 kỳ đầu làm warm-up mặc định,
-rồi tạo xác suất riêng của `base`, `ewma_0.99`, `ewma_0.995`, `ewma_0.999`, `sgd`
-và `hedge` chỉ từ dữ liệu đã có trước kỳ đang dự đoán. Tất cả sáu dự đoán được lưu vào
-SQLite trước khi ghi kết quả thực; kết quả chỉ được dùng sau đó để cập nhật mô hình và
-trọng số Hedge cho kỳ tiếp theo.
+Mỗi game sắp xếp kỳ quay theo thời gian tăng dần. Kỳ đầu tiên dùng để khởi tạo trạng thái;
+bắt đầu từ kỳ thứ hai, dự đoán được tạo từ toàn bộ các kỳ đã xảy ra trước đó: kỳ 2 dùng
+kỳ 1, kỳ 3 dùng kỳ 1–2, tiếp tục như vậy đến kỳ cuối. Không bỏ 100 kỳ đầu khỏi đánh giá.
+Xác suất của `base`, `beta_binomial`, `ewma_0.99`, `ewma_0.995`, `ewma_0.999`, `sgd`
+và `hedge` chỉ dùng dữ liệu có trước kỳ đang dự đoán. Mọi dự đoán được lưu vào SQLite
+trước khi ghi kết quả thực; kết quả chỉ được dùng sau đó để cập nhật mô hình và trọng số
+Hedge cho kỳ tiếp theo.
 
 Dự đoán backtest, xác suất theo từng số, sáu số được chọn, thời gian dự đoán, hash dữ liệu
 tiền tố và cấu hình được lưu riêng trong `/data/<game>_backtest.sqlite3`. Khi có dữ liệu
@@ -97,8 +99,8 @@ Muốn nhận thông báo đẩy trên điện thoại, điền tên dịch vụ
   gần nhất. Nút **Huấn luyện lại toàn bộ** sẽ xếp hàng train lại tất cả game đang bật.
 
 Các sensor tương ứng cũng được tạo cho `mega645`. `expert_log_loss` và
-`expert_brier_score` là trung bình theo từng số (45/55 số mỗi kỳ), chỉ tính sau warm-up.
-Backtest cũng chỉ chấm các kỳ sau 100 kỳ warm-up lịch sử.
+`expert_brier_score` là trung bình theo từng số (45/55 số mỗi kỳ), bắt đầu chấm từ kỳ thứ hai.
+Backtest cũng bắt đầu chấm từ kỳ thứ hai; kỳ đầu chỉ dùng để khởi tạo.
 
 Các thực thể được tạo qua API trạng thái nên sẽ biến mất khi Home Assistant khởi động lại,
 và add-on tạo lại chúng ở lần kiểm tra kế tiếp (tối đa `poll_minutes` phút).
