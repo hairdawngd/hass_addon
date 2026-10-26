@@ -71,10 +71,6 @@ def _apply_stats(st, ev):
         st["special_hits"] += 1 if r["hit"] else 0
 
 
-def _top(p, k):
-    return sorted(int(i) for i in np.argsort(-p)[:k])
-
-
 def _uniform_sample(n, k, seed):
     seed_value = int.from_bytes(
         hashlib.sha256(str(seed).encode("utf-8")).digest()[:8], "big"
@@ -115,7 +111,7 @@ def _training_info(models, rows, training_date, full_retrain, backtest_result):
         "expert_brier_score": brier_scores,
         "expert_weights": weights,
         "production_predictor": {
-            "loto": "hedge",
+            "loto": "uniform",
             "special": "uniform",
         },
         "backtest_metrics": backtest_result["metrics"],
@@ -211,11 +207,14 @@ def update(rows, loto_count, special_count, force_retrain=False, warmup=100):
         nxt_lo = build_features(np.vstack([M_lo, np.zeros((1, N_NUMBERS))]))[-1]
         nxt_sp = build_features(np.vstack([M_sp, np.zeros((1, N_NUMBERS))]))[-1]
         p_lo, p_sp = m_lo.predict(nxt_lo), m_sp.predict(nxt_sp)
-        special_picks = _uniform_sample(N_NUMBERS, special_count, ids[-1])
+        loto_picks = _uniform_sample(N_NUMBERS, loto_count, f"{ids[-1]}:loto")
+        special_picks = _uniform_sample(N_NUMBERS, special_count, f"{ids[-1]}:special")
         log["pending"] = {
             "after_id": ids[-1], "after_date": rows[-1]["date"],
-            "loto": _top(p_lo, loto_count), "special": special_picks,
-            "loto_probs": {str(int(i)): round(float(p_lo[i]), 4) for i in np.argsort(-p_lo)[:10]},
+            "loto": loto_picks, "special": special_picks,
+            "loto_probs": {
+                str(number): round(float(p_lo[number]), 4) for number in loto_picks
+            },
             "special_probs": {
                 str(number): round(float(p_sp[number]), 5) for number in special_picks
             },

@@ -26,14 +26,17 @@ SGD logistic và Hedge) được so sánh bằng walk-forward:
    của một số là khoảng 23,8% (1 − 0,99²⁷).
 2. **2 số cuối giải Đặc biệt**: xác suất ngẫu nhiên 1% cho mỗi số.
 
-Mỗi kỳ add-on chọn `loto_per_draw` số loto theo Hedge. Với giải ĐB, dự đoán vận hành
-dùng phân phối đồng đều 1% cho từng số và chọn một tập số ngẫu nhiên có seed ổn định.
-Các mô hình EWMA/SGD/Hedge cho giải ĐB vẫn được chấm trong backtest, nhưng không được
-dùng để nâng hoặc hạ xác suất production vì chưa có bằng chứng ngoài mẫu đáng tin cậy.
-Số ĐB kỳ trước không bị phạt hoặc ưu tiên: nếu các kỳ độc lập, xác suất có điều kiện của
-mỗi số ở kỳ kế tiếp vẫn là 1%. Trên snapshot dữ liệu đến 2026-10-25, có 80 lần lặp trong
-7.593 chuyển tiếp (1,054%; Wilson 95% khoảng 0,847–1,309%), không cho thấy mức lặp thấp
-hơn mức nền 1%.
+Production chọn ngẫu nhiên có seed ổn định `loto_per_draw` số loto và `special_per_draw`
+số ĐB, với xác suất biên đồng đều cho từng số: khoảng 23,8% cho loto và 1% cho số ĐB.
+Các mô hình EWMA/SGD/Hedge cho cả hai target vẫn được chấm trong backtest, nhưng không
+được dùng để nâng hoặc hạ xác suất production vì chưa có bằng chứng ngoài mẫu đáng tin cậy.
+Số kỳ trước không bị phạt hoặc ưu tiên: dưới giả định các kỳ độc lập, xác suất có điều kiện
+của một số vẫn bằng xác suất nền của target đó.
+
+Trên snapshot dữ liệu đến 2026-10-25, số ĐB lặp lại 80 lần trong 7.593 chuyển tiếp (1,054%;
+Wilson 95% khoảng 0,847–1,309%). Với loto, 43.337 lần xuất hiện lại trên 181.034 cơ hội
+(23,94%; Wilson 95% khoảng 23,74–24,14%), so với tỷ lệ biên quan sát 23,84%. Các khoảng
+này không cho thấy kỳ trước cần bị giảm xác suất.
 
 Mỗi ngày một lần, mô hình dùng để tạo dự đoán kỳ tới được khởi tạo lại và học tuần tự
 từ kỳ lịch sử đầu tiên đến kỳ mới nhất. Trong cùng ngày, các chu kỳ kiểm tra tiếp theo

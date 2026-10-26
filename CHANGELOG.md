@@ -20,4 +20,6 @@
   backtest metrics without failing the Ingress page.
 - **XSMB Tracker 0.1.10**: use uniform production probabilities for the special-number
   target until walk-forward evidence supports a non-uniform model; sample picks reproducibly.
+- **XSMB Tracker 0.1.11**: also use the uniform baseline for production loto picks because
+  no reliable walk-forward advantage over baseline was found for either target.
 - Keep each add-on's `config.yaml` version aligned with its Python package version.
