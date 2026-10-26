@@ -47,6 +47,15 @@ def render():
     )
     o.append("<h2>Huấn luyện</h2>")
     if training:
+        production_predictors = training.get("production_predictor", {})
+        if production_predictors:
+            o.append(
+                "<p>Dự đoán đang vận hành: "
+                f"loto <b>{html.escape(production_predictors.get('loto', 'n/a'))}</b>, "
+                "2 số cuối ĐB <b>"
+                f"{html.escape(production_predictors.get('special', 'n/a'))}</b>. "
+                "Các mô hình khác được giữ để đối chiếu walk-forward.</p>"
+            )
         o.append(
             f"<p>Đã học {training['processed_draws']} kỳ · lịch sử "
             f"{html.escape(training['first_draw'])}–{html.escape(training['last_draw'])} · "

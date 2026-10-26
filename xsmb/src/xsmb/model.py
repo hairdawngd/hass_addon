@@ -9,7 +9,7 @@ EPS = 1e-6
 DECAYS = (0.99, 0.995, 0.999)
 WARMUP_DRAWS = 100
 LR, L2, ETA = 0.002, 1e-2, 0.5
-MODEL_VERSION = 3
+MODEL_VERSION = 4
 
 
 def _normalise(p):
@@ -91,6 +91,8 @@ class OnlineModel:
         return forecast
 
     def predict(self, Xt):
+        if self.categorical:
+            return np.full(self.n, 1.0 / self.n, dtype=np.float64)
         return self.forecast(Xt)["hedge"]
 
     def observe(self, Xt, y, forecasts):

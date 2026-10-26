@@ -18,4 +18,6 @@
   and paired block-bootstrap intervals while retaining the existing production experts.
 - **XSMB Tracker 0.1.9**: render older saved training records that predate Brier and
   backtest metrics without failing the Ingress page.
+- **XSMB Tracker 0.1.10**: use uniform production probabilities for the special-number
+  target until walk-forward evidence supports a non-uniform model; sample picks reproducibly.
 - Keep each add-on's `config.yaml` version aligned with its Python package version.

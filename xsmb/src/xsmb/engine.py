@@ -1,4 +1,5 @@
 """Lõi: học kỳ mới, đối chiếu số đã dự đoán với kết quả, tạo dự đoán cho kỳ sau."""
+import hashlib
 import json
 import os
 from collections import Counter
@@ -74,6 +75,16 @@ def _top(p, k):
     return sorted(int(i) for i in np.argsort(-p)[:k])
 
 
+def _uniform_sample(n, k, seed):
+    seed_value = int.from_bytes(
+        hashlib.sha256(str(seed).encode("utf-8")).digest()[:8], "big"
+    )
+    return sorted(
+        int(value)
+        for value in np.random.default_rng(seed_value).choice(n, size=k, replace=False)
+    )
+
+
 def _training_info(models, rows, training_date, full_retrain, backtest_result):
     experts = {}
     brier_scores = {}
@@ -103,6 +114,10 @@ def _training_info(models, rows, training_date, full_retrain, backtest_result):
         "expert_log_loss": experts,
         "expert_brier_score": brier_scores,
         "expert_weights": weights,
+        "production_predictor": {
+            "loto": "hedge",
+            "special": "uniform",
+        },
         "backtest_metrics": backtest_result["metrics"],
         "backtest_database": backtest_result["database_path"],
     }
@@ -196,11 +211,14 @@ def update(rows, loto_count, special_count, force_retrain=False, warmup=100):
         nxt_lo = build_features(np.vstack([M_lo, np.zeros((1, N_NUMBERS))]))[-1]
         nxt_sp = build_features(np.vstack([M_sp, np.zeros((1, N_NUMBERS))]))[-1]
         p_lo, p_sp = m_lo.predict(nxt_lo), m_sp.predict(nxt_sp)
+        special_picks = _uniform_sample(N_NUMBERS, special_count, ids[-1])
         log["pending"] = {
             "after_id": ids[-1], "after_date": rows[-1]["date"],
-            "loto": _top(p_lo, loto_count), "special": _top(p_sp, special_count),
+            "loto": _top(p_lo, loto_count), "special": special_picks,
             "loto_probs": {str(int(i)): round(float(p_lo[i]), 4) for i in np.argsort(-p_lo)[:10]},
-            "special_probs": {str(int(i)): round(float(p_sp[i]), 5) for i in np.argsort(-p_sp)[:10]},
+            "special_probs": {
+                str(number): round(float(p_sp[number]), 5) for number in special_picks
+            },
             "loto_base": round(P_LOTO, 4), "special_base": P_SPECIAL}
     _write(h / "log.json", log)
     return result(events)

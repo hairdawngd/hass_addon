@@ -112,6 +112,34 @@ def test_beta_binomial_candidate_obeys_target_probability_constraints():
     assert restored.forecast(features)["beta_binomial"].sum() == pytest.approx(1.0)
 
 
+def test_categorical_production_prediction_stays_uniform_after_repeated_results():
+    model = OnlineModel(100, 0.01, categorical=True, warmup=1)
+    features = np.zeros((100, model.F), dtype=np.float32)
+    outcome = np.zeros(100)
+    outcome[37] = 1
+
+    for _ in range(80):
+        model.step(features, outcome)
+
+    research_forecast = model.forecast(features)["hedge"]
+    production_forecast = model.predict(features)
+
+    assert research_forecast[37] > 1.0 / 100
+    np.testing.assert_allclose(production_forecast, np.full(100, 0.01))
+    assert production_forecast.sum() == pytest.approx(1.0)
+
+
+def test_uniform_special_sample_is_valid_and_reproducible():
+    first = engine._uniform_sample(100, 3, "2026-10-25")
+    repeated = engine._uniform_sample(100, 3, "2026-10-25")
+    another_draw = engine._uniform_sample(100, 3, "2026-10-26")
+
+    assert first == repeated
+    assert len(first) == len(set(first)) == 3
+    assert all(0 <= number < 100 for number in first)
+    assert len(another_draw) == 3
+
+
 def test_walk_forward_predictions_are_saved_for_all_models_before_scoring(tmp_path):
     rows = _history()
     database = tmp_path / "walk-forward.sqlite3"
@@ -233,6 +261,12 @@ def test_engine_keeps_production_training_separate_and_incremental(tmp_path, mon
     second = engine.update(rows[:103], loto_count=5, special_count=3)
     assert second["training"]["backtest_metrics"]["loto"]["draws"] == 3
     assert second["training"]["backtest_metrics"]["special"]["draws"] == 3
+    assert second["training"]["production_predictor"] == {
+        "loto": "hedge",
+        "special": "uniform",
+    }
+    assert len(second["pending"]["special"]) == 3
+    assert set(second["pending"]["special_probs"].values()) == {0.01}
     assert second["stats"]["draws"] == 1
 
     page = web.render()
@@ -255,6 +289,9 @@ def test_engine_keeps_production_training_separate_and_incremental(tmp_path, mon
         recorder.states["sensor.xsmb_training"]["attributes"]["backtest_metrics"]
         == second["training"]["backtest_metrics"]
     )
+    assert recorder.states["sensor.xsmb_training"]["attributes"][
+        "production_predictor"
+    ] == {"loto": "hedge", "special": "uniform"}
 
 
 def test_web_renders_legacy_training_log_without_brier_or_backtest(monkeypatch):

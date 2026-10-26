@@ -104,6 +104,7 @@ def publish_sensors(ha, res):
             "expert_log_loss": training["expert_log_loss"],
             "expert_brier_score": training["expert_brier_score"],
             "expert_weights": training["expert_weights"],
+            "production_predictor": training["production_predictor"],
             "backtest_metrics": training["backtest_metrics"],
         }
     )

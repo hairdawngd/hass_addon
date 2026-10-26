@@ -19,14 +19,21 @@ rất nhanh khi chưa có kỳ mới.
 
 ## Dự đoán gì
 
-Có hai mục tiêu, mỗi mục một mô hình học trực tuyến (EWMA + SGD logistic + Hedge):
+Có hai mục tiêu được theo dõi; các ứng viên thống kê/học trực tuyến (EWMA,
+SGD logistic và Hedge) được so sánh bằng walk-forward:
 
 1. **Loto**: số 2 chữ số (00–99) xuất hiện ít nhất một lần trong 27 giải. Xác suất ngẫu nhiên
    của một số là khoảng 23,8% (1 − 0,99²⁷).
 2. **2 số cuối giải Đặc biệt**: xác suất ngẫu nhiên 1% cho mỗi số.
 
-Mỗi kỳ add-on chọn `loto_per_draw` số loto và `special_per_draw` số cho giải ĐB có xác suất
-mô hình cao nhất. Thực tế các xác suất này chỉ chênh vài phần nghìn so với mức nền.
+Mỗi kỳ add-on chọn `loto_per_draw` số loto theo Hedge. Với giải ĐB, dự đoán vận hành
+dùng phân phối đồng đều 1% cho từng số và chọn một tập số ngẫu nhiên có seed ổn định.
+Các mô hình EWMA/SGD/Hedge cho giải ĐB vẫn được chấm trong backtest, nhưng không được
+dùng để nâng hoặc hạ xác suất production vì chưa có bằng chứng ngoài mẫu đáng tin cậy.
+Số ĐB kỳ trước không bị phạt hoặc ưu tiên: nếu các kỳ độc lập, xác suất có điều kiện của
+mỗi số ở kỳ kế tiếp vẫn là 1%. Trên snapshot dữ liệu đến 2026-10-25, có 80 lần lặp trong
+7.593 chuyển tiếp (1,054%; Wilson 95% khoảng 0,847–1,309%), không cho thấy mức lặp thấp
+hơn mức nền 1%.
 
 Mỗi ngày một lần, mô hình dùng để tạo dự đoán kỳ tới được khởi tạo lại và học tuần tự
 từ kỳ lịch sử đầu tiên đến kỳ mới nhất. Trong cùng ngày, các chu kỳ kiểm tra tiếp theo
