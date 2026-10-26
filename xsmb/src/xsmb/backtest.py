@@ -345,7 +345,9 @@ def summarize(conn):
     return metrics
 
 
-def run_walk_forward(rows, database_path, loto_count=5, special_count=3, warmup=WARMUP_DRAWS):
+def run_walk_forward(
+    rows, database_path, loto_count=5, special_count=3, warmup=WARMUP_DRAWS
+):
     """Predict each scored draw from its prefix, persist forecasts, then observe its result."""
     ordered = ordered_rows(rows)
     if warmup < 1:

@@ -7,9 +7,9 @@ from .features import N_FEATURES
 
 EPS = 1e-6
 DECAYS = (0.99, 0.995, 0.999)
-WARMUP_DRAWS = 100
+WARMUP_DRAWS = 1
 LR, L2, ETA = 0.002, 1e-2, 0.5
-MODEL_VERSION = 5
+MODEL_VERSION = 6
 
 
 def _normalise(p):

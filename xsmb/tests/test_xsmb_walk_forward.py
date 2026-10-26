@@ -165,9 +165,10 @@ def test_walk_forward_predictions_are_saved_for_all_models_before_scoring(tmp_pa
     result = run_walk_forward(rows, database)
 
     assert result["processed_draws"] == len(rows)
-    assert result["warmup_draws"] == 100
-    assert result["scored_draws"] == len(rows) - 100
-    saved = _read_predictions(database, rows[100]["id"])
+    assert result["warmup_draws"] == 1
+    assert result["scored_draws"] == len(rows) - 1
+    assert _read_predictions(database, rows[0]["id"]) == []
+    saved = _read_predictions(database, rows[1]["id"])
     assert len(saved) == len(MODEL_NAMES) * 2
     assert all(record[2] and record[3] and record[4] and record[5] for record in saved)
     assert all(record[6] is not None for record in saved)
@@ -178,11 +179,36 @@ def test_walk_forward_predictions_are_saved_for_all_models_before_scoring(tmp_pa
             assert probabilities.sum() == pytest.approx(1.0)
 
     for target, summary in result["metrics"].items():
-        assert summary["draws"] == len(rows) - 100
+        assert summary["draws"] == len(rows) - 1
         assert set(summary["models"]) == set(MODEL_NAMES)
         assert {metrics["draws"] for metrics in summary["models"].values()} == {
-            len(rows) - 100
+            len(rows) - 1
         }
+
+
+def test_each_forecast_uses_only_the_available_prefix(tmp_path):
+    rows = _history(5)
+    altered = copy.deepcopy(rows)
+    altered[1]["special"] = (altered[1]["special"] + 1) % 100
+    altered[1]["loto"] = [(number + 1) % 100 for number in altered[1]["loto"]]
+
+    original_db = tmp_path / "ordered-original.sqlite3"
+    changed_db = tmp_path / "ordered-changed.sqlite3"
+    run_walk_forward(rows, original_db)
+    run_walk_forward(altered, changed_db)
+
+    # The second-draw forecast only has draw 1 available, so changing draw 2
+    # cannot affect it. Draw 3 can use draw 2 after that result is observed.
+    second_original = _read_predictions(original_db, rows[1]["id"])
+    second_changed = _read_predictions(changed_db, rows[1]["id"])
+    third_original = _read_predictions(original_db, rows[2]["id"])
+    third_changed = _read_predictions(changed_db, rows[2]["id"])
+    assert [(item[0], item[1], item[2]) for item in second_original] == [
+        (item[0], item[1], item[2]) for item in second_changed
+    ]
+    assert [(item[0], item[1], item[2]) for item in third_original] != [
+        (item[0], item[1], item[2]) for item in third_changed
+    ]
 
 
 def test_outcome_is_not_opened_until_all_forecasts_are_committed(tmp_path, monkeypatch):
@@ -239,16 +265,16 @@ def test_backtest_is_reproducible_and_incremental(tmp_path):
         {record[4] for record in next_draw}
     )
     assert result["processed_draws"] == 108
-    assert result["scored_draws"] == 8
+    assert result["scored_draws"] == 107
     for summary in result["metrics"].values():
-        assert summary["draws"] == 8
-        assert {scores["draws"] for scores in summary["models"].values()} == {8}
+        assert summary["draws"] == 107
+        assert {scores["draws"] for scores in summary["models"].values()} == {107}
         assert summary["log_loss_definition"]
         assert summary["brier_definition"]
         assert summary["confidence_interval_definition"]
         assert "beta_binomial" in summary["models"]
         assert summary["models"]["base"]["log_loss_delta_vs_base"] == 0
-    assert first_metrics["loto"]["draws"] == 5
+    assert first_metrics["loto"]["draws"] == 104
 
     repeat_db = tmp_path / "repeat.sqlite3"
     run_walk_forward(rows[:108], repeat_db)
@@ -274,11 +300,11 @@ def test_engine_keeps_production_training_separate_and_incremental(tmp_path, mon
     rows = _history(103)
 
     first = engine.update(rows[:102], loto_count=5, special_count=3)
-    assert first["training"]["backtest_metrics"]["loto"]["draws"] == 2
+    assert first["training"]["backtest_metrics"]["loto"]["draws"] == 101
 
     second = engine.update(rows[:103], loto_count=5, special_count=3)
-    assert second["training"]["backtest_metrics"]["loto"]["draws"] == 3
-    assert second["training"]["backtest_metrics"]["special"]["draws"] == 3
+    assert second["training"]["backtest_metrics"]["loto"]["draws"] == 102
+    assert second["training"]["backtest_metrics"]["special"]["draws"] == 102
     assert second["training"]["production_predictor"] == {
         "loto": "uniform",
         "special": "uniform",

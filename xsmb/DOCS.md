@@ -45,9 +45,11 @@ train lại mô hình dự đoán không xóa hay chấm lại các dự đoán 
 
 ## Backtest walk-forward
 
-Backtest sắp xếp toàn bộ lịch sử theo ngày tăng dần, dùng 100 kỳ đầu làm warm-up mặc định,
-rồi đánh giá các kỳ còn lại theo thứ tự. Với mỗi kỳ được đánh giá, feature và xác suất của
-cả sáu mô hình được tạo chỉ từ các kỳ trước đó. Tất cả dự đoán được ghi vào
+Backtest sắp xếp toàn bộ lịch sử theo ngày tăng dần. Kỳ đầu tiên chỉ dùng để khởi tạo trạng
+thái; bắt đầu từ kỳ thứ hai, dự đoán được tạo từ toàn bộ các kỳ đã xảy ra trước đó: kỳ 2 dùng
+kỳ 1, kỳ 3 dùng kỳ 1–2, và tiếp tục tăng dần đến kỳ cuối. Như vậy mặc định chỉ có 1 kỳ
+warm-up, thay vì bỏ qua 100 kỳ đầu. Với mỗi kỳ được đánh giá, feature và xác suất của
+các mô hình được tạo chỉ từ quá khứ. Tất cả dự đoán được ghi vào
 `/data/backtest.sqlite3` **trước khi** kết quả kỳ hiện tại được ghi nhận; sau đó kết quả mới
 được dùng để cập nhật mô hình và trọng số Hedge cho kỳ kế tiếp.
 

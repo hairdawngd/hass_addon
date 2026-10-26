@@ -119,7 +119,7 @@ def _training_info(models, rows, training_date, full_retrain, backtest_result):
     }
 
 
-def update(rows, loto_count, special_count, force_retrain=False, warmup=100):
+def update(rows, loto_count, special_count, force_retrain=False, warmup=1):
     h = home()
     rows = backtest.ordered_rows(rows)
     N = len(rows)

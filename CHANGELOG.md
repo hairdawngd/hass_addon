@@ -22,4 +22,6 @@
   target until walk-forward evidence supports a non-uniform model; sample picks reproducibly.
 - **XSMB Tracker 0.1.11**: also use the uniform baseline for production loto picks because
   no reliable walk-forward advantage over baseline was found for either target.
+- **XSMB Tracker 0.1.12**: start walk-forward scoring on draw 2, using all preceding
+  draws for each forecast instead of discarding the first 100 draws as warm-up.
 - Keep each add-on's `config.yaml` version aligned with its Python package version.
